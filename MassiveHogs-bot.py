@@ -123,7 +123,7 @@ async def leaderboard(interaction: discord.Interaction, start: str, end: str):
             lines = f.readlines()
     except FileNotFoundError:
         lines = []
-    results = []
+    author_best = {}
     for line in lines:
         if "cm" not in line:
             continue
@@ -133,10 +133,13 @@ async def leaderboard(interaction: discord.Interaction, start: str, end: str):
                 date_and_author, size_str = line.strip().split(":", 1)
                 author = date_and_author.strip().split(" ", 1)[1]
                 size = int(size_str.strip().replace("cm", ""))
-                results.append((author, size))
+                # Keep only the highest size per author
+                if author not in author_best or size > author_best[author]:
+                    author_best[author] = size
         except Exception:
             continue
-    top5 = sorted(results, key=lambda x: x[1], reverse=True)[:5]
+    # Convert to list and sort
+    top5 = sorted(author_best.items(), key=lambda x: x[1], reverse=True)[:5]
     if top5:
         leaderboard = "\n".join(
             [f"{author}: {size} cm" for author, size in top5]
