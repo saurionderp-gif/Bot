@@ -10,10 +10,14 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
 
+
+
+
 class MyClient(discord.Client):
     def __init__(self, *, intents):
         super().__init__(intents=intents)
         self.tree = discord.app_commands.CommandTree(self)
+
 
     async def setup_hook(self):
         await self.tree.sync()
