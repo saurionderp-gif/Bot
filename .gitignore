@@ -1,0 +1,6 @@
+# Ignore virtual environment and environment files
+.venv/
+.env
+__pypackages__/
+__pycache__/
+.gitattributes

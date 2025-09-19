@@ -33,6 +33,10 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # Only respond in the "hog-check" text channel
+    if message.channel.name != "hog-check":
+        return
+
     if message.content.startswith('!hog'):
         size = random.randint(0, 45)
         User = str(message.author.display_name)
@@ -119,6 +123,31 @@ async def on_message(message):
         else:
             await message.channel.send("No results yet for today!")
 
+    if message.content.startswith('!average'):
+        User = str(message.author.display_name)
+        try:
+            with open("hog_results.txt", "r") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            lines = []
+        sizes = []
+        for line in lines:
+            if "cm" not in line:
+                continue
+            try:
+                date_and_author, size_str = line.strip().split(":", 1)
+                author = date_and_author.strip().split(" ", 1)[1]
+                size = int(size_str.strip().replace("cm", ""))
+                if author == User:
+                    sizes.append(size)
+            except Exception:
+                continue
+        if sizes:
+            avg = sum(sizes) / len(sizes)
+            await message.channel.send(f"{User}, your Hog average is {avg:.2f} cm")
+        else:
+            await message.channel.send(f"{User}, you have no Hog results yet.")
+
 @client.tree.command(name="leaderboard", description="Show leaderboard for a date range (YYYY-MM-DD)")
 async def leaderboard(interaction: discord.Interaction, start: str, end: str):
     """Slash command: /leaderboard start end"""
@@ -155,5 +184,31 @@ async def leaderboard(interaction: discord.Interaction, start: str, end: str):
         await interaction.response.send_message(
             f"No results found between {start} and {end}."
         )
+
+@client.tree.command(name="average", description="Show the average Hog size for a user")
+async def average(interaction: discord.Interaction, user: discord.Member):
+    User = user.display_name
+    try:
+        with open("hog_results.txt", "r") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        lines = []
+    sizes = []
+    for line in lines:
+        if "cm" not in line:
+            continue
+        try:
+            date_and_author, size_str = line.strip().split(":", 1)
+            author = date_and_author.strip().split(" ", 1)[1]
+            size = int(size_str.strip().replace("cm", ""))
+            if author == User:
+                sizes.append(size)
+        except Exception:
+            continue
+    if sizes:
+        avg = sum(sizes) / len(sizes)
+        await interaction.response.send_message(f"{User}'s Hog average is {avg:.2f} cm")
+    else:
+        await interaction.response.send_message(f"{User} has no Hog results yet.")
 
 client.run(TOKEN)
