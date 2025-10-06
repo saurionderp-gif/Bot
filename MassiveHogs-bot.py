@@ -132,8 +132,14 @@ async def on_message(message):
                 await message.channel.send("No results yet for today!")
 
         if message.content.startswith('!average'):
-            user_id = str(message.author.id)
-            display_name = message.author.display_name
+            # If a user is mentioned, use their ID and display name; otherwise, use the author's
+            if message.mentions:
+                target_member = message.mentions[0]
+                user_id = str(target_member.id)
+                display_name = target_member.display_name
+            else:
+                user_id = str(message.author.id)
+                display_name = message.author.display_name
             try:
                 with open("hog_results.txt", "r") as f:
                     lines = f.readlines()
@@ -145,7 +151,8 @@ async def on_message(message):
                     continue
                 try:
                     date_and_author, size_str = line.strip().split(":", 1)
-                    author_id = date_and_author.strip().split(" ", 1)[1]
+                    parts = date_and_author.strip().split(" ")
+                    author_id = parts[1]
                     size = int(size_str.strip().replace("cm", ""))
                     if author_id == user_id:
                         sizes.append(size)
